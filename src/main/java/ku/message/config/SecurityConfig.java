@@ -48,9 +48,26 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 
     @Override
-    public void configure(WebSecurity web) throws Exception {
-        web
-                .ignoring()
-                .antMatchers("/h2-console/**");
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+                .authorizeRequests()
+                .antMatchers("/home", "/signup", "/css/**", "/js/**")
+                .permitAll()
+                .antMatchers("/product/add").access("hasRole('ROLE_ADMIN')")
+                .antMatchers("/product", "/message", "/post")
+                .access("hasRole('ROLE_USER') or hasRole('ROLE_ADMIN')")
+                .anyRequest().authenticated();
+
+        http.formLogin()
+                .loginPage("/login")
+                .defaultSuccessUrl("/message", true)
+                .permitAll()
+                .and()
+                .logout()
+                .logoutUrl("/logout")
+                .clearAuthentication(true)
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID", "remember-me")
+                .permitAll();
     }
 }
